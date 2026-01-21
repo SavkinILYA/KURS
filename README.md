@@ -98,3 +98,107 @@ ansible-playbook -i inventories/hosts.yml playbooks/logging.yml
 | **Grafana** | [http://178.154.200.203:3000](http://178.154.200.203:3000) | admin/admin | Визуализация метрик |
 | **Kibana** | [http://89.169.130.108:5601](http://89.169.130.108:5601) | - | Анализ логов |
 | **Prometheus** | [http://192.168.20.30:9090](http://192.168.20.30:9090) <br> *(через bastion)* | - | Сбор метрик |
+
+
+## Скрины
+
+1. Grafana - Node Exporter Full Dashboard
+ ![Grafana - Node Exporter Full Dashboard](img/Grafana_dash.png)
+
+2. Kibana - Просмотр логов nginx
+![Kibana - Просмотр логов nginx](img/Kibana.png)
+
+3. Kibana - Визуализация данных
+![Kibana - Визуализация данных](img/Kibana_2.png)
+
+4. Elastic
+![Elastic](img/Elastic_dashbord.png)
+
+5.Health Check Endpoint
+![Health Check Endpoint](img/health.png)
+
+## Собираемые метрики
+
+- CPU Utilization, Saturation, Errors
+- Memory Utilization, Saturation
+- Disk I/O, Utilization
+- Network throughput and errors
+- HTTP response count and size
+
+## Структура репозитория
+
+├── README.md                      # Документация проекта
+├── terraform/
+│   ├── main.tf                    # Основная инфраструктура
+│   ├── outputs.tf                 # Terraform outputs
+│   └── terraform.tfstate          # Состояние инфраструктуры
+├── ansible/
+│   ├── inventories/
+│   │   └── hosts.yml              # Inventory для Ansible
+│   ├── playbooks/
+│   │   ├── site.yml               # Настройка web-серверов
+│   │   ├── monitoring.yml         # Настройка мониторинга
+│   │   └── logging.yml            # Настройка логирования
+│   └── roles/
+│       ├── nginx/                 # Роль Nginx
+│       ├── node_exporter/         # Роль Node Exporter
+│       ├── prometheus/            # Роль Prometheus
+│       ├── grafana/               # Роль Grafana
+│       ├── elasticsearch/         # Роль Elasticsearch
+│       ├── kibana/                # Роль Kibana
+│       └── filebeat/              # Роль Filebeat
+├── screenshots/
+│   ├── Grafana_dash.png           # Grafana dashboard
+│   ├── Kibana.png                 # Kibana logs
+│   ├── Kibana_2.png               # Kibana dashboard
+│   ├── Elastic_dashbord.png       # Elasticsearch
+│   └── health.png                 # Health check
+└── LICENSE                        # MIT License
+
+## Выводы и особенности реализации
+
+В ходе выполнения курсового проекта были выявлены и проработаны несколько
+важных инфраструктурных нюансов, характерных для реальных production-сред
+и облачных платформ.
+
+### NAT и доступ в интернет из приватной сети
+
+Все сервисы (web, monitoring, logging) размещены в **приватных подсетях**
+без прямого доступа в интернет. Для выхода во внешний мир используется
+**NAT Instance**, что соответствует best practices по безопасности.
+
+Однако в процессе реализации возникли следующие особенности:
+
+- **Публичный IP NAT-инстанса назначается только после создания инфраструктуры**
+- На этапе `terraform apply` этот IP ещё недоступен
+- Из-за этого невозможно напрямую использовать его в `route_table`
+  без дополнительных ухищрений
+
+При попытке описать маршруты через `self-reference` возникал
+**циклический dependency graph**, который Terraform не смог разрешить.
+
+В результате:
+- маршрутизация была реализована через **явное указание `route_table_id`**
+- часть логики была вынесена в отдельный шаг
+- решение является **рабочим**, но требует рефакторинга при дальнейшем развитии
+
+### Итоговое наблюдение
+
+Проект показал, что:
+- даже при использовании IaC остаются **границы между декларативным описанием и реальной инфраструктурой**
+- сетевые зависимости и порядок создания ресурсов критичны
+- не все проблемы решаются «чистой конфигурацией», иногда требуются инженерные компромиссы
+
+Полученный опыт напрямую применим в реальных проектах и даёт
+понимание того, **где Terraform и Ansible заканчиваются, а архитектурное мышление начинается**.
+
+## Post Scriptum
+
+Инфраструктура проекта на данный момент **оставлена активной** для проверки
+и демонстрации работоспособности всех компонентов.
+
+После завершения защиты курсового проекта 
+инфраструктура будет **полностью удалена**, чтобы избежать дальнейших затрат
+на облачные ресурсы.
+
+Спасибо за понимание.
