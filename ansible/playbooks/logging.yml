@@ -1,0 +1,6 @@
+---
+- name: Setup Filebeat on web servers
+  hosts: webservers
+  become: yes
+  roles:
+    - filebeat

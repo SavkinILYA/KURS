@@ -1,0 +1,23 @@
+---
+- name: Install dependencies
+  ansible.builtin.apt:
+    name: apt-transport-https
+    state: present
+    update_cache: yes
+
+- name: Download Kibana DEB
+  ansible.builtin.get_url:
+    url: https://artifacts.elastic.co/downloads/kibana/kibana-8.11.0-amd64.deb
+    dest: /tmp/kibana.deb
+    mode: '0644'
+
+- name: Install Kibana
+  ansible.builtin.apt:
+    deb: /tmp/kibana.deb
+    state: present
+
+- name: Enable and start Kibana
+  ansible.builtin.systemd:
+    name: kibana
+    enabled: yes
+    state: started

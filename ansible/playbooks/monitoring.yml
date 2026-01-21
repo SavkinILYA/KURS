@@ -1,0 +1,6 @@
+---
+- name: Configure Prometheus
+  hosts: prometheus
+  become: yes
+  roles:
+    - prometheus

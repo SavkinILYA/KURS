@@ -1,0 +1,39 @@
+---
+- name: Copy Filebeat DEB to remote server
+  copy:
+    src: filebeat-8.11.0-amd64.deb
+    dest: /tmp/filebeat.deb
+    mode: '0644'
+
+- name: Install Filebeat from local DEB
+  apt:
+    deb: /tmp/filebeat.deb
+    state: present
+  register: filebeat_install
+
+- name: Create Filebeat configuration
+  copy:
+    content: |
+      filebeat.inputs:
+      - type: filestream
+        enabled: true
+        paths:
+          - /var/log/nginx/access.log
+          - /var/log/nginx/error.log
+      
+      output.elasticsearch:
+        hosts: ["http://{{ hostvars['elasticsearch'].ansible_host }}:9200"]
+        index: "filebeat-nginx-%{+yyyy.MM.dd}"
+
+      setup.template.name: "filebeat"
+      setup.template.pattern: "filebeat-*"
+    dest: /etc/filebeat/filebeat.yml
+    mode: '0644'
+  notify: restart filebeat
+
+- name: Enable and start Filebeat
+  systemd:
+    name: filebeat
+    enabled: yes
+    state: started
+  when: filebeat_install is success

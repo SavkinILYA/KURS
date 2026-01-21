@@ -1,0 +1,39 @@
+---
+- name: Install Grafana via DEB package
+  hosts: grafana
+  become: yes
+  gather_facts: yes
+  vars:
+    grafana_version: "9.5.2"
+    grafana_deb_url: "https://dl.grafana.com/oss/release/grafana_{{ grafana_version }}_amd64.deb"
+
+  tasks:
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name: "wget,apt-transport-https,ca-certificates"
+        state: present
+        update_cache: yes
+
+    - name: Download Grafana DEB package
+      ansible.builtin.get_url:
+        url: "{{ grafana_deb_url }}"
+        dest: "/tmp/grafana.deb"
+        mode: '0644'
+
+    - name: Install Grafana
+      ansible.builtin.apt:
+        deb: "/tmp/grafana.deb"
+        state: present
+
+    - name: Enable and start Grafana
+      ansible.builtin.systemd:
+        name: grafana-server
+        enabled: yes
+        state: started
+
+    - name: Wait for Grafana to be up
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 3000
+        delay: 5
+        timeout: 30

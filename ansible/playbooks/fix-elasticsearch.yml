@@ -1,0 +1,51 @@
+---
+- name: Completely reconfigure Elasticsearch
+  hosts: elasticsearch
+  become: yes
+  tasks:
+    - name: Backup old elasticsearch.yml
+      copy:
+        src: /etc/elasticsearch/elasticsearch.yml
+        dest: /etc/elasticsearch/elasticsearch.yml.backup
+        remote_src: yes
+
+    - name: Create new clean elasticsearch.yml
+      copy:
+        content: |
+          cluster.name: diploma-cluster
+          node.name: elasticsearch-node-1
+          path.data: /var/lib/elasticsearch
+          path.logs: /var/log/elasticsearch
+          network.host: 0.0.0.0
+          http.port: 9200
+          discovery.type: single-node
+          xpack.security.enabled: false
+          xpack.security.http.ssl.enabled: false
+          xpack.security.transport.ssl.enabled: false
+        dest: /etc/elasticsearch/elasticsearch.yml
+
+    - name: Restart Elasticsearch
+      systemd:
+        name: elasticsearch
+        state: restarted
+        enabled: yes
+
+- name: Reconfigure Kibana
+  hosts: kibana
+  become: yes
+  tasks:
+    - name: Update kibana.yml
+      copy:
+        content: |
+          server.host: "0.0.0.0"
+          server.port: 5601
+          elasticsearch.hosts: ["http://{{ hostvars['elasticsearch'].ansible_host }}:9200"]
+          elasticsearch.ssl.verificationMode: none
+          xpack.security.enabled: false
+        dest: /etc/kibana/kibana.yml
+
+    - name: Restart Kibana
+      systemd:
+        name: kibana
+        state: restarted
+        enabled: yes

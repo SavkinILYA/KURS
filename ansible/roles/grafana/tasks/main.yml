@@ -1,0 +1,39 @@
+---
+- name: Add Grafana GPG key
+  ansible.builtin.apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+
+- name: Add Grafana repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    state: present
+    filename: grafana
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Grafana
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+
+- name: Enable and start Grafana
+  ansible.builtin.systemd:
+    name: grafana-server
+    enabled: yes
+    state: started
+
+- name: Configure Prometheus as data source
+  ansible.builtin.template:
+    src: datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/datasource.yml
+    owner: grafana
+    group: grafana
+    mode: '0644'
+
+- name: Restart Grafana to apply data source
+  ansible.builtin.systemd:
+    name: grafana-server
+    state: restarted

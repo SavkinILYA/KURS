@@ -1,0 +1,57 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Deploy index.html
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+  notify: reload nginx
+
+- name: Ensure nginx is running
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+# === NEW: Nginx Log Exporter ===
+- name: Download Nginx Log Exporter
+  get_url:
+    url: https://github.com/martin-helmich/prometheus-nginxlog-exporter/releases/download/v1.10.0/prometheus-nginxlog-exporter_1.10.0_linux_amd64.deb
+    dest: /tmp/nginx-exporter.deb
+    mode: '0644'
+
+- name: Install Nginx Log Exporter
+  apt:
+    deb: /tmp/nginx-exporter.deb
+    state: present
+
+- name: Create config directory
+  file:
+    path: /etc/prometheus-nginxlog-exporter
+    state: directory
+    mode: '0755'
+
+- name: Configure Nginx Log Exporter
+  copy:
+    content: |
+      listen { port = 4040 }
+      namespace "nginx" {
+        source_files = ["/var/log/nginx/access.log"]
+        format = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\""
+      }
+    dest: /etc/prometheus-nginxlog-exporter/config.hcl
+  notify: restart nginx-exporter
+
+- name: Enable Nginx Log Exporter
+  systemd:
+    name: prometheus-nginxlog-exporter
+    enabled: yes
+    state: started

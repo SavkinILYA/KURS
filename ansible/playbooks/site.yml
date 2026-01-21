@@ -1,0 +1,7 @@
+---
+- name: Configure web servers
+  hosts: webservers
+  become: yes
+  roles:
+    - nginx
+    - node_exporter

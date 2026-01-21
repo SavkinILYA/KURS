@@ -1,0 +1,39 @@
+---
+- name: Install and configure Elasticsearch
+  hosts: elasticsearch
+  become: yes
+  gather_facts: yes
+  vars:
+    es_version: "8.11.0"
+    es_deb_url: "https://mirror.selectel.ru/3rd-party/elasticsearch-8.x/pool/main/e/elasticsearch/elasticsearch-{{ es_version }}-amd64.deb"
+
+  tasks:
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name: "openjdk-17-jdk,apt-transport-https,ca-certificates,wget"
+        state: present
+        update_cache: yes
+
+    - name: Download Elasticsearch DEB
+      ansible.builtin.get_url:
+        url: "{{ es_deb_url }}"
+        dest: "/tmp/elasticsearch.deb"
+        mode: '0644'
+
+    - name: Install Elasticsearch
+      ansible.builtin.apt:
+        deb: "/tmp/elasticsearch.deb"
+        state: present
+
+    - name: Enable and start Elasticsearch
+      ansible.builtin.systemd:
+        name: elasticsearch
+        enabled: yes
+        state: started
+
+    - name: Wait for Elasticsearch to be up
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 9200
+        delay: 5
+        timeout: 60

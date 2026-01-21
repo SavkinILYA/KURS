@@ -1,0 +1,35 @@
+---
+- name: Install Elasticsearch dependencies
+  apt:
+    name: apt-transport-https
+    state: present
+    update_cache: yes
+
+- name: Add Elasticsearch GPG key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch 
+    state: present
+
+- name: Add Elasticsearch repository
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
+    state: present
+
+- name: Install Elasticsearch
+  apt:
+    name: elasticsearch
+    state: present
+    update_cache: yes
+
+- name: Configure Elasticsearch network
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^#network.host'
+    line: 'network.host: 0.0.0.0'
+  notify: restart elasticsearch
+
+- name: Enable and start Elasticsearch
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started

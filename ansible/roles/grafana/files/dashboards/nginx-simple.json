@@ -1,0 +1,21 @@
+{
+  "title": "Nginx Logs Metrics",
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Requests/sec",
+      "type": "stat",
+      "targets": [{"expr": "rate(nginx_http_requests_total[5m])"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "Response Count by Status",
+      "type": "stat",
+      "targets": [{"expr": "sum(nginx_http_response_count_total) by (status)"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    }
+  ],
+  "timezone": "browser",
+  "time": {"from": "now-1h", "to": "now"}
+}
