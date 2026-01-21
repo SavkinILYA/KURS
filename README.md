@@ -135,36 +135,6 @@ ansible-playbook -i inventories/hosts.yml playbooks/logging.yml
 - Network throughput and errors
 - HTTP response count and size
 
-## Структура репозитория
-
-├── README.md                      # Документация проекта
-├── terraform/
-│   ├── main.tf                    # Основная инфраструктура
-│   ├── outputs.tf                 # Terraform outputs
-│   └── terraform.tfstate          # Состояние инфраструктуры
-├── ansible/
-│   ├── inventories/
-│   │   └── hosts.yml              # Inventory для Ansible
-│   ├── playbooks/
-│   │   ├── site.yml               # Настройка web-серверов
-│   │   ├── monitoring.yml         # Настройка мониторинга
-│   │   └── logging.yml            # Настройка логирования
-│   └── roles/
-│       ├── nginx/                 # Роль Nginx
-│       ├── node_exporter/         # Роль Node Exporter
-│       ├── prometheus/            # Роль Prometheus
-│       ├── grafana/               # Роль Grafana
-│       ├── elasticsearch/         # Роль Elasticsearch
-│       ├── kibana/                # Роль Kibana
-│       └── filebeat/              # Роль Filebeat
-├── screenshots/
-│   ├── Grafana_dash.png           # Grafana dashboard
-│   ├── Kibana.png                 # Kibana logs
-│   ├── Kibana_2.png               # Kibana dashboard
-│   ├── Elastic_dashbord.png       # Elasticsearch
-│   └── health.png                 # Health check
-└── LICENSE                        # MIT License
-
 ## Выводы и особенности реализации
 
 В ходе выполнения курсового проекта были выявлены и проработаны несколько
