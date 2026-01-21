@@ -103,18 +103,28 @@ ansible-playbook -i inventories/hosts.yml playbooks/logging.yml
 ## Скрины
 
 1. Grafana - Node Exporter Full Dashboard
+
+
  ![Grafana - Node Exporter Full Dashboard](img/Grafana_dash.png)
 
 2. Kibana - Просмотр логов nginx
+
+
 ![Kibana - Просмотр логов nginx](img/Kibana.png)
 
 3. Kibana - Визуализация данных
+
+   
 ![Kibana - Визуализация данных](img/Kibana_2.png)
 
 4. Elastic
+
+   
 ![Elastic](img/Elastic_dashbord.png)
 
+
 5.Health Check Endpoint
+
 ![Health Check Endpoint](img/health.png)
 
 ## Собираемые метрики
